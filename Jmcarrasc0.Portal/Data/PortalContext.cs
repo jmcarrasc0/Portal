@@ -5,9 +5,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Jmcarrasc0.Portal.Data;
 
-public partial class WCLContext : DbContext
+public partial class PortalContext : DbContext
 {
-    public WCLContext(DbContextOptions<WCLContext> options)
+    public PortalContext(DbContextOptions<PortalContext> options)
         : base(options)
     {
     }

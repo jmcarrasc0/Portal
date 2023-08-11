@@ -23,4 +23,10 @@
   </ItemGroup>
 
 
+  <ItemGroup>
+    <Folder Include="Areas\" />
+    <Folder Include="Data\" />
+  </ItemGroup>
+
+
 </Project>
