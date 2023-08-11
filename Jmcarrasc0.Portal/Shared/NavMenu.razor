@@ -12,6 +12,10 @@
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
             <div class="offcanvas-body">
+                <form class="d-flex mt-3" role="search">
+                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
+                    <button class="btn btn-outline-success" type="submit">Search</button>
+                </form>
                 <ul class="navbar-nav justify-content-end flex-grow-1 pe-3">
                     <li class="nav-item">
                         <a class="nav-link active" aria-current="page" href="#">Próximamente</a>
@@ -32,12 +36,19 @@
                             <li><a class="dropdown-item" href="#">Próximamente</a></li>
                         </ul>
                     </li>
+                    <br />
+                    <li class="nav-item">
+                        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#loginmodal">Iniciar Sesión</button>
+                        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#registrermodal">Regístrate</button>
+                        <!-- Button trigger modal -->
+                    </li>
                 </ul>
-                <form class="d-flex mt-3" role="search">
-                    <input class="form-control me-2" type="search" placeholder="Search" aria-label="Search">
-                    <button class="btn btn-outline-success" type="submit">Search</button>
-                </form>
+
             </div>
         </div>
     </div>
 </nav>
+
+<LoginModal />
+
+<RegistrerModal />
