@@ -1,4 +1,6 @@
-﻿@inject IJSRuntime JS
+﻿@using Jmcarrasc0.Portal.Services;
+@inject IJSRuntime JS
+@inject Mensajeria m
 <!--Login Modal -->
 <div class="modal fade" id="loginmodal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
@@ -22,7 +24,7 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                <button type="button" class="btn btn-primary">Iniciar Sesión</button>
+                <button type="button" class="btn btn-primary" @onclick="@sending">Iniciar Sesión</button>
             </div>
         </div>
     </div>
@@ -40,6 +42,13 @@
             recaptcha = await JS.InvokeAsync<IJSObjectReference>("import", "./js/reCAPTCHA.js");
 
         }
+    }
+
+    private void sending()
+    {
+        var cosa = m.EnviarCorreoBienvenida("Juan", "Carrasco", "juancho", "yosoy@jmcarrasc0.dev", Guid.NewGuid().ToString());
+
+        
     }
 
 }
