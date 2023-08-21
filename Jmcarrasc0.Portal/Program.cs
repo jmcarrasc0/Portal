@@ -1,4 +1,8 @@
 
+using FluentValidation;
+using Jmcarrasc0.Portal.Data;
+using Jmcarrasc0.Portal.Models;
+using Jmcarrasc0.Portal.Models.Validations;
 using Jmcarrasc0.Portal.Services;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
@@ -11,18 +15,21 @@ using System.Net.Http.Headers;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-var connectionString = builder.Configuration.GetConnectionString("Portal") ?? throw new InvalidOperationException("Connection string 'Portal' not found.");
+builder.Services.AddDbContext<PortalContext>(o =>o.UseSqlServer(builder.Configuration["ConnectionStrings:Portal"]));
 
 builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 
 
-builder.Services.AddSignalR(e => {
-    e.MaximumReceiveMessageSize = 102400000;
-});
+builder.Services.AddSignalR(e =>{e.MaximumReceiveMessageSize = 102400000;});
 
 builder.Services.AddScoped<Mensajeria, Mensajeria>();
+builder.Services.AddServerSideBlazor().AddCircuitOptions(options => { options.DetailedErrors = true; });
+
+
+builder.Services.AddTransient<IValidator<Usuarios>, UsuariosValidator>();
+builder.Services.AddTransient<IValidator<UsuarioPass>, UsuarioPassValidator>();
 
 var app = builder.Build();
 
