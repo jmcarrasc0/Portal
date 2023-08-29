@@ -9,33 +9,24 @@ namespace Jmcarrasc0.Portal.Models.Validations
 
         private readonly PortalContext db;
 
-        public UsuariosValidator(PortalContext _db)
+            public UsuariosValidator(PortalContext _db)
         {
             db = _db;
             RuleFor(u => u.Nombre)
-                .NotEmpty().WithMessage("Ingrese su Nombre")
+                .NotNull().NotEmpty().WithMessage("Ingrese su Nombre")
                 .Length(2, 50).WithMessage("Ingrese un Nombre Valido");
             RuleFor(u => u.Apellido)
               .NotEmpty().WithMessage("Ingrese su Apellido")
               .Length(2, 50).WithMessage("Ingrese un Apellido Valido");
 
             RuleFor(u => u.Correo)
-                .NotEmpty().WithMessage("Ingrese su Correo")
-                .EmailAddress().WithMessage("Ingrese un correo valido")
-                .MustAsync(async (email, cancellation) =>
-                {
-                    var exists = await CorreoUnico(email);
-                    return !exists;
-                }).WithMessage("Correo registrado por favor recupere su contraseña");
+                .NotNull().NotEmpty().WithMessage("Ingrese su Correo")
+                .EmailAddress().WithMessage("Ingrese un correo valido");
+
 
             RuleFor(u => u.Username)
-                .NotEmpty().WithMessage("Ingrese su usuario")
-                .Length(2, 50).WithMessage("Ingrese un usuario Valido")
-                .MustAsync(async (userName, cancellation) =>
-                {
-                    var exists = await UsuarioUnico(userName);
-                    return !exists;
-                }).WithMessage("Usuario registrado por favor pruebe con otro");
+                .NotNull().NotEmpty().WithMessage("Ingrese su usuario")
+                .Length(2, 50).WithMessage("Ingrese un usuario Valido");
 
 
             RuleForEach(u => u.UsuarioPass).SetValidator(new UsuarioPassValidator());

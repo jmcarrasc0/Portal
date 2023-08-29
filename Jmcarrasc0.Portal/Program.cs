@@ -1,5 +1,6 @@
 
 using FluentValidation;
+using Jmcarrasc0.Blazor.Loading;
 using Jmcarrasc0.Portal.Data;
 using Jmcarrasc0.Portal.Models;
 using Jmcarrasc0.Portal.Models.Validations;
@@ -25,6 +26,7 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddSignalR(e =>{e.MaximumReceiveMessageSize = 102400000;});
 
 builder.Services.AddScoped<Mensajeria, Mensajeria>();
+builder.Services.AddScoped<LoadingServices>();
 builder.Services.AddServerSideBlazor().AddCircuitOptions(options => { options.DetailedErrors = true; });
 
 

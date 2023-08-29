@@ -134,9 +134,9 @@ export function pwd() {
 				$("#progressbar").width(percentage);
 
 				if (form.validationPassword.checkValidity() === true) {
-					form.verifyPassword.disabled = false;
+					
 				} else {
-					form.verifyPassword.disabled = true;
+				
 				}
 
 

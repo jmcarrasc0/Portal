@@ -7,9 +7,15 @@
     <UserSecretsId>aspnet-Jmcarrasc0.Portal-5bb4a379-e01a-466a-af82-ff0844c5451a</UserSecretsId>
   </PropertyGroup>
 
+  <ItemGroup>
+    <Content Remove="compilerconfig.json" />
+  </ItemGroup>
+
 
   <ItemGroup>
     <PackageReference Include="Blazored.FluentValidation" Version="2.1.0" />
+    <PackageReference Include="FluentValidation" Version="11.7.1" />
+    <PackageReference Include="Jmcarrasc0.Blazor.Loading" Version="1.0.1" />
     <PackageReference Include="Jmcarrasc0.Cryptography" Version="1.0.1" />
     <PackageReference Include="MailKit" Version="4.1.0" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.EntityFrameworkCore" Version="7.0.10" />
@@ -36,6 +42,7 @@
 
   <ItemGroup>
     <None Include="..\.editorconfig" Link=".editorconfig" />
+    <None Include="compilerconfig.json" />
   </ItemGroup>
 
 

@@ -8,9 +8,8 @@ namespace Jmcarrasc0.Portal.Models.Validations
         public UsuarioPassValidator()
         {
             RuleFor(p => p.Pass)
-                .NotEmpty().WithMessage("Ingrese su contraseña")
-                .NotNull().WithMessage("Campo de Contraseña en blanco")
-                .Length(8, 15).WithMessage("La contraseña debe contener un rango de 8 a 15 caracteres")
+                .NotNull().NotEmpty().WithMessage("Ingrese su contraseña")
+                .Length(8, 20).WithMessage("La contraseña debe contener un rango de 8 a 20 caracteres")
                 .Matches("[A-Z]").WithMessage("La contraseña debe contener al menos 1 letra en Mayúsculas")
                 .Matches("[a-z]").WithMessage("La contraseña debe contener al menos 1 letra en Minúsculas")
                 .Matches("[0-9]").WithMessage("La contraseña debe contener al menos un número")
