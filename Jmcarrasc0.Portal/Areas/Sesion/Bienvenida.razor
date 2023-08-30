@@ -1,0 +1,60 @@
+﻿@page "/Bienvenida"
+@page "/Bienvenida/{NombreCompleto}"
+@page "/Bienvenida/{NombreCompleto}/{Correo}"
+@inject NavigationManager NavigationManager
+@using Microsoft.AspNetCore.WebUtilities
+
+
+
+<div class="card">
+    <h5 class="card-header">Hola! @nombreCompleto</h5>
+    <div class="card-body">
+        <h5 class="card-title">Jmcarrasc0.dev</h5>
+        <p class="card-text">
+            Quiere darte las gracias por registrarte en nuestro nuevo portal web,
+            a través el cual podrás suscribirte a nuestros boletines y noticia que será de tu agrado y te mantendrá informado en todo momento
+            de los que pasa en el mundo.
+        </p>
+        <br />
+        <p>Antes de comenzar con tu primer inicio de sesión por favor revisa la bandeja de entrada del correo <strong> @correo </strong>, hemos enviado un enlace para comprobar que eres tú!</p>
+        <a href="#" class="btn btn-primary">Go somewhere</a>
+    </div>
+</div>
+
+
+@code {
+
+    [Parameter]
+    public string nombreCompleto { get; set; }
+
+    [Parameter]
+    public string correo { get; set; }
+
+    [Parameter]
+    public string username { get; set; }
+
+
+
+
+
+    protected override void OnInitialized()
+    {
+
+        var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
+        var queryStrings = QueryHelpers.ParseQuery(uri.Query);
+        if (queryStrings.TryGetValue("NombreCompleto", out var NombreCompleto))
+        {
+            nombreCompleto = NombreCompleto;
+        }
+        if (queryStrings.TryGetValue("Correo", out var Correo))
+        {
+            correo = Correo;
+        }
+        if (queryStrings.TryGetValue("UserName", out var UserName))
+        {
+            username = UserName;
+        }
+
+    }
+
+}

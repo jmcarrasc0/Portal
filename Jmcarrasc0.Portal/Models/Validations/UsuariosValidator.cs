@@ -19,14 +19,25 @@ namespace Jmcarrasc0.Portal.Models.Validations
               .NotEmpty().WithMessage("Ingrese su Apellido")
               .Length(2, 50).WithMessage("Ingrese un Apellido Valido");
 
-            RuleFor(u => u.Correo)
-                .NotNull().NotEmpty().WithMessage("Ingrese su Correo")
-                .EmailAddress().WithMessage("Ingrese un correo valido");
 
+            RuleFor(u => u.Correo)
+                .NotEmpty().WithMessage("Ingrese su Correo")
+                .EmailAddress().WithMessage("Ingrese un correo valido")
+                .MustAsync(async (email, cancellation) =>
+                {
+                    var exists = await CorreoUnico(email);
+                    return !exists;
+                }).WithMessage("Correo registrado por favor recupere su contraseña");
 
             RuleFor(u => u.Username)
-                .NotNull().NotEmpty().WithMessage("Ingrese su usuario")
-                .Length(2, 50).WithMessage("Ingrese un usuario Valido");
+                .NotEmpty().WithMessage("Ingrese su usuario")
+                .Length(2, 50).WithMessage("Ingrese un usuario Valido")
+                .MustAsync(async (userName, cancellation) =>
+                {
+                    var exists = await UsuarioUnico(userName);
+                    return !exists;
+                }).WithMessage("Usuario registrado por favor pruebe con otro");
+
 
 
             RuleForEach(u => u.UsuarioPass).SetValidator(new UsuarioPassValidator());
@@ -36,7 +47,7 @@ namespace Jmcarrasc0.Portal.Models.Validations
         {
             var dbUsuario = await db.Usuarios.AnyAsync(x => x.Correo.ToLower().Equals(correo.ToLower()));
 
-            return dbUsuario;
+          return dbUsuario;
         }
 
         private async Task<bool> UsuarioUnico(string Username)
