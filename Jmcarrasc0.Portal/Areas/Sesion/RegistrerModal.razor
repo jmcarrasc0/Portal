@@ -4,6 +4,7 @@
 @using Jmcarrasc0.Portal.Models;
 @using Jmcarrasc0.Portal.Services;
 @using Microsoft.AspNetCore.WebUtilities;
+@using System.Collections;
 @inject IJSRuntime JS
 @inject PortalContext db
 @inject NavigationManager NavigationManager
@@ -113,7 +114,6 @@
         {
             recaptcha = await JS.InvokeAsync<IJSObjectReference>("import", "./js/password.js");
             await recaptcha.InvokeVoidAsync("pwd");
-
         }
     }
 

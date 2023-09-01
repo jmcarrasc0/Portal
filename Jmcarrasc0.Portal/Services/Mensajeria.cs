@@ -5,6 +5,7 @@ namespace Jmcarrasc0.Portal.Services
     public class Mensajeria
     {
         private readonly IConfiguration conf;
+
         public Mensajeria(IConfiguration _conf)
         {
 
