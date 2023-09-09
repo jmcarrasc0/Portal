@@ -1,8 +1,14 @@
 ﻿@page "/Bienvenida"
 @page "/Bienvenida/{NombreCompleto}"
 @page "/Bienvenida/{NombreCompleto}/{Correo}"
-@inject NavigationManager NavigationManager
+@using Jmcarrasc0.Portal.Data;
+@using Jmcarrasc0.Portal.Services;
 @using Microsoft.AspNetCore.WebUtilities
+@using Microsoft.EntityFrameworkCore;
+@inject PortalContext db
+@inject Mensajeria m
+@inject NavigationManager NavigationManager
+@inject Jmcarrasc0.Blazor.Loading.LoadingServices loadingService
 
 
 
@@ -17,9 +23,27 @@
         </p>
         <br />
         <p>Antes de comenzar con tu primer inicio de sesión por favor revisa la bandeja de entrada del correo <strong> @correo </strong>, hemos enviado un enlace para comprobar que eres tú!</p>
-        <a href="#" class="btn btn-primary">Go somewhere</a>
+        <button type="button" class="btn btn-primary" @onclick="@(e=>EnviarCorreo())">Reenviar nuevamente</button>
     </div>
 </div>
+
+
+@if(isShow){
+<div class="toast position-fixed bottom-0 end-1 p-3 show" role="alert" aria-live="assertive" aria-atomic="true">
+    <div class="toast-header">
+            <i class="bi bi-exclamation-triangle" style="color:green"></i>
+        <strong class="me-auto">Notificación</strong>
+        <small>11 mins ago</small>
+        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+    </div>
+    <div class="toast-body">
+        @msn
+    </div>
+</div>
+
+
+}
+
 
 
 @code {
@@ -33,13 +57,16 @@
     [Parameter]
     public string username { get; set; }
 
+    private string msn { get; set; }
+
+    private bool isShow { get; set; }
 
 
 
 
     protected override void OnInitialized()
     {
-
+        isShow = false;
         var uri = NavigationManager.ToAbsoluteUri(NavigationManager.Uri);
         var queryStrings = QueryHelpers.ParseQuery(uri.Query);
         if (queryStrings.TryGetValue("NombreCompleto", out var NombreCompleto))
@@ -53,6 +80,28 @@
         if (queryStrings.TryGetValue("UserName", out var UserName))
         {
             username = UserName;
+        }
+
+    }
+
+
+    private async void EnviarCorreo()
+    {
+        loadingService.Show();
+
+        if (!String.IsNullOrEmpty(correo))
+        {
+            var userEstatus = await db.UsuarioEstatus.Include(e => e.IDEstatusNavigation).ThenInclude(e => e.UsuarioEstatus)
+                .Include(u => u.IDUsuarioNavigation)
+                .FirstOrDefaultAsync(x => x.IDUsuarioNavigation.Correo.ToLower().Equals(correo) && x.ModifiedOn.Equals(null));
+
+            if (userEstatus!.IDEstatusNavigation.Codigo.Equals(1010) && m.EnviarCorreoBienvenida(userEstatus.IDUsuarioNavigation.Nombre, userEstatus.IDUsuarioNavigation.Apellido, username, correo, userEstatus.IDUsuarioNavigation.IDUsuario.ToString()) == true)
+            {
+                msn = "Correo de Confirmación enviado";
+                isShow = true;
+                loadingService.Hide();
+                StateHasChanged();
+            }
         }
 
     }
