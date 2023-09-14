@@ -2,6 +2,8 @@
 @using Microsoft.JSInterop;
 @inject IJSRuntime JS
 @inject Mensajeria m
+
+
 <!--Login Modal -->
 <div class="modal fade" id="loginmodal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
@@ -23,9 +25,9 @@
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <div class="modal-footer">                
                 <button type="button" class="btn btn-primary" @onclick="@sending">Iniciar Sesión</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
             </div>
         </div>
     </div>
