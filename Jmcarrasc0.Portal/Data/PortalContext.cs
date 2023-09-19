@@ -28,17 +28,19 @@ public partial class PortalContext : DbContext
 
     public virtual DbSet<UsuarioPass> UsuarioPass { get; set; }
 
+    public virtual DbSet<UsuarioPassCounts> UsuarioPassCounts { get; set; }
+
+    public virtual DbSet<UsuarioPassResets> UsuarioPassResets { get; set; }
+
     public virtual DbSet<UsuarioRoles> UsuarioRoles { get; set; }
 
     public virtual DbSet<Usuarios> Usuarios { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
-        modelBuilder.HasDefaultSchema("Dev");
-
         modelBuilder.Entity<Archivos>(entity =>
         {
-            entity.HasKey(e => e.IDArchivo).HasName("PK__Archivos__F289B5E1636A71D7");
+            entity.HasKey(e => e.IDArchivo).HasName("PK__Archivos__F289B5E1931806FE");
 
             entity.Property(e => e.IDArchivo).HasDefaultValueSql("(newid())");
             entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
@@ -46,7 +48,7 @@ public partial class PortalContext : DbContext
 
         modelBuilder.Entity<Estatus>(entity =>
         {
-            entity.HasKey(e => e.IDEstatus).HasName("PK__Estatus__042C4B510897CE8C");
+            entity.HasKey(e => e.IDEstatus).HasName("PK__Estatus__042C4B513C89F6EB");
 
             entity.Property(e => e.IDEstatus).HasDefaultValueSql("(newid())");
             entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
@@ -54,7 +56,7 @@ public partial class PortalContext : DbContext
 
         modelBuilder.Entity<Pais>(entity =>
         {
-            entity.HasKey(e => e.IDPais).HasName("PK__Pais__8A5C2D2F424C2B14");
+            entity.HasKey(e => e.IDPais).HasName("PK__Pais__8A5C2D2F9A965066");
 
             entity.Property(e => e.IDPais).HasDefaultValueSql("(newid())");
             entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
@@ -62,7 +64,7 @@ public partial class PortalContext : DbContext
 
         modelBuilder.Entity<Prioridades>(entity =>
         {
-            entity.HasKey(e => e.IDPrioridad).HasName("PK__Priorida__116AAFBEFC2047EA");
+            entity.HasKey(e => e.IDPrioridad).HasName("PK__Priorida__116AAFBEB4628B69");
 
             entity.Property(e => e.IDPrioridad).HasDefaultValueSql("(newid())");
             entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
@@ -70,7 +72,7 @@ public partial class PortalContext : DbContext
 
         modelBuilder.Entity<Roles>(entity =>
         {
-            entity.HasKey(e => e.IDRol).HasName("PK__Roles__A681ACB61C713AA5");
+            entity.HasKey(e => e.IDRol).HasName("PK__Roles__A681ACB6B583BA86");
 
             entity.Property(e => e.IDRol).HasDefaultValueSql("(newid())");
             entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
@@ -78,71 +80,85 @@ public partial class PortalContext : DbContext
 
         modelBuilder.Entity<UsuarioEstatus>(entity =>
         {
-            entity.HasKey(e => e.IDUsuarioEstatus).HasName("PK__UsuarioE__C19EBAFBA60A5B83");
+            entity.HasKey(e => e.IDUsuarioEstatus).HasName("PK__UsuarioE__C19EBAFBD308005D");
 
             entity.Property(e => e.IDUsuarioEstatus).HasDefaultValueSql("(newid())");
             entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
 
             entity.HasOne(d => d.IDEstatusNavigation).WithMany(p => p.UsuarioEstatus)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__UsuarioEs__IDEst__4316F928");
+                .HasConstraintName("FK__UsuarioEs__IDEst__619B8048");
 
             entity.HasOne(d => d.IDUsuarioNavigation).WithMany(p => p.UsuarioEstatus)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__UsuarioEs__IDUsu__4222D4EF");
+                .HasConstraintName("FK__UsuarioEs__IDUsu__628FA481");
         });
 
         modelBuilder.Entity<UsuarioImagenes>(entity =>
         {
-            entity.HasKey(e => e.IDUsuarioImagen).HasName("PK__UsuarioI__A54D3B1BF47CD876");
+            entity.HasKey(e => e.IDUsuarioImagen).HasName("PK__UsuarioI__A54D3B1BC086D8D0");
 
             entity.Property(e => e.IDUsuarioImagen).HasDefaultValueSql("(newid())");
             entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.UsuarioImagenesCreatedByNavigation)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__UsuarioIm__Creat__4F7CD00D");
+                .HasConstraintName("FK__UsuarioIm__Creat__6383C8BA");
 
             entity.HasOne(d => d.IDArchivoNavigation).WithMany(p => p.UsuarioImagenes)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__UsuarioIm__IDArc__4D94879B");
+                .HasConstraintName("FK__UsuarioIm__IDArc__6477ECF3");
 
             entity.HasOne(d => d.IDUsuarioNavigation).WithMany(p => p.UsuarioImagenesIDUsuarioNavigation)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__UsuarioIm__IDUsu__4CA06362");
+                .HasConstraintName("FK__UsuarioIm__IDUsu__656C112C");
         });
 
         modelBuilder.Entity<UsuarioPass>(entity =>
         {
-            entity.HasKey(e => e.IDUsuarioPass).HasName("PK__UsuarioP__4523E4613736CC10");
+            entity.HasKey(e => e.IDUsuarioPass).HasName("PK__UsuarioP__4523E4618CA2EF5C");
 
             entity.Property(e => e.IDUsuarioPass).HasDefaultValueSql("(newid())");
             entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
 
             entity.HasOne(d => d.IDUsuarioNavigation).WithMany(p => p.UsuarioPass)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__UsuarioPa__IDUsu__47DBAE45");
+                .HasConstraintName("FK__UsuarioPa__IDUsu__66603565");
+        });
+
+        modelBuilder.Entity<UsuarioPassCounts>(entity =>
+        {
+            entity.HasKey(e => e.IDUsuarioPassCount).HasName("PK__UsuarioP__6A204856E9C32B7E");
+
+            entity.Property(e => e.IDUsuarioPassCount).HasDefaultValueSql("(newid())");
+        });
+
+        modelBuilder.Entity<UsuarioPassResets>(entity =>
+        {
+            entity.HasKey(e => e.IDUsuarioPassReset).HasName("PK__UsuarioP__B57240880F529362");
+
+            entity.Property(e => e.IDUsuarioPassReset).HasDefaultValueSql("(newid())");
         });
 
         modelBuilder.Entity<UsuarioRoles>(entity =>
         {
-            entity.HasKey(e => e.IDUsuarioRol).HasName("PK__UsuarioR__3A284C80A2177AB5");
+            entity.HasKey(e => e.IDUsuarioRol).HasName("PK__UsuarioR__3A284C80F0092F36");
 
             entity.Property(e => e.IDUsuarioRol).HasDefaultValueSql("(newid())");
             entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");
 
             entity.HasOne(d => d.IDRolNavigation).WithMany(p => p.UsuarioRoles)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__UsuarioRo__IDRol__3D5E1FD2");
+                .HasConstraintName("FK__UsuarioRo__IDRol__6754599E");
 
             entity.HasOne(d => d.IDUsuarioNavigation).WithMany(p => p.UsuarioRoles)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__UsuarioRo__IDUsu__3C69FB99");
+                .HasConstraintName("FK__UsuarioRo__IDUsu__68487DD7");
         });
 
         modelBuilder.Entity<Usuarios>(entity =>
         {
-            entity.HasKey(e => e.IDUsuario).HasName("PK__Usuarios__5231116944718508");
+            entity.HasKey(e => e.IDUsuario).HasName("PK__Usuarios__5231116976B7C76B");
 
             entity.Property(e => e.IDUsuario).HasDefaultValueSql("(newid())");
             entity.Property(e => e.CreatedOn).HasDefaultValueSql("(getdate())");

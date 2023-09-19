@@ -1,10 +1,19 @@
-﻿@using Jmcarrasc0.Portal.Services;
+﻿@using Jmcarrasc0.Portal.Data;
+@using Jmcarrasc0.Portal.Models.Customizeds;
+@using Jmcarrasc0.Portal.Services;
+@using Microsoft.EntityFrameworkCore;
 @using Microsoft.JSInterop;
+@using Jmcarrasc0.Cryptography;
+@using FluentValidation;
 @inject IJSRuntime JS
+@inject PortalContext db
+@inject NavigationManager NavigationManager
 @inject Mensajeria m
+@inject Jmcarrasc0.Blazor.Loading.LoadingServices loadingService
 
 
 <!--Login Modal -->
+
 <div class="modal fade" id="loginmodal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
@@ -25,18 +34,43 @@
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">                
-                <button type="button" class="btn btn-primary" @onclick="@sending">Iniciar Sesión</button>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-primary" @onclick="@LogIn">Iniciar Sesión</button>
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
             </div>
         </div>
     </div>
 </div>
 
+@if (isShow)
+{
+    <div class="toast position-fixed bottom-0 end-1 p-3 show" role="alert" aria-live="assertive" aria-atomic="true">
+        <div class="toast-header">
+            <i class="bi bi-exclamation-triangle" style="color:red"></i>
+            <strong class="me-auto">Notificación</strong>
+            <small>hace segundos</small>
+            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+        <div class="toast-body">
+            @msn
+        </div>
+    </div>
+
+
+}
+
+
 @code {
 
     IJSObjectReference recaptcha;
 
+    private FluentValidationValidator? fluentValidationValidator;
+
+    Login loginModel = new Login() { };
+
+    private string msn { get; set; }
+
+    private bool isShow { get; set; }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
@@ -47,11 +81,149 @@
         }
     }
 
-    private void sending()
+    private async void LogIn()
     {
-        var cosa = m.EnviarCorreoBienvenida("Juan", "Carrasco", "juancho", "yosoy@jmcarrasc0.dev", Guid.NewGuid().ToString());
+        loadingService.Show();
+        StateHasChanged();
+        var crypt = new Cryptography();
 
-        
+
+        if (loginModel != null)
+        {
+
+            //Validar que el usuario existe en la base de datos
+
+            var l = await db.UsuarioPass.Include(p => p.IDUsuarioNavigation)
+                .FirstOrDefaultAsync(w => w.IDUsuarioNavigation.Correo.ToLower().Equals(loginModel.Usuario.ToLower()) ||
+                                          w.IDUsuarioNavigation.UserName.ToLower().Equals(loginModel.Usuario));
+
+
+            if (l is null)
+            {
+                msn = "El Usuario no existe, intente con un correo o nombre de usuario válido";
+                isShow = true;
+                loadingService.Show();
+                StateHasChanged();
+            }
+            else if (crypt.VerifyHashedPassword(l.Pass, loginModel.Password))
+            {
+                db.UsuarioPassCount.RemoveRange(db.UsuarioPassCount.Where(p => p.IDUsuarioPass.Equals(l.IDUsuarioPass)));
+                await db.SaveChangesAsync();
+
+                var t = await db.UsuarioEstatus.Include(e => e.IDEstatusNavigation).ThenInclude(e => e.UsuarioEstatus)
+                    .Include(u => u.IDUsuarioNavigation)
+                    .FirstOrDefaultAsync(x => x.IDUsuario.Equals(l.IDUsuario) && x.IsActive);
+
+                if (t.IDEstatusNavigation.Estatus1.Equals("Suspendido"))
+                {
+                    ErrorInfo = "Por Favor Contactanos";
+                    IsLoadingstr = "none";
+                    StateHasChanged();
+                }
+                else if (t.IDEstatusNavigation.Estatus1.Equals("Sin Autenticar"))
+                {
+                    ErrorInfo = "Cuenta sin autenticar por favor validar";
+                    IsLoadingstr = "none";
+                    StateHasChanged();
+                }
+                else if (t.IDEstatusNavigation.Estatus1.Equals("Suspendido"))
+                {
+                    ErrorInfo = "Por Favor Contactanos";
+                    IsLoadingstr = "none";
+                    StateHasChanged();
+                }
+                else if (t.IDEstatusNavigation.Estatus1.Equals("Reinicio Clave"))
+                {
+                    ErrorInfo = "Cuenta con proceso de reinicio de clave";
+                    IsLoadingstr = "none";
+                    StateHasChanged();
+                }
+                else if (t.IDEstatusNavigation.Estatus1.Equals("Bloqueado") || t.IDEstatusNavigation.Estatus1.Equals("Reinicio Clave Vencido"))
+                {
+                    ErrorInfo = "Por favor haga clic en ¿Has olvidado tu contraseña?";
+                    IsLoadingstr = "none";
+                    StateHasChanged();
+                }
+                else if (t.IDEstatusNavigation.Estatus1.Equals("Activo"))
+                {
+                    var endoc = HttpUtility.UrlEncode(l.IDUsuario.ToString());
+                    var endocl = HttpUtility.UrlEncode(crypt.Encrypt(l.IDUsuario.ToString(), loginModel.Password));
+
+                    IsLoadingstr = "none";
+                    StateHasChanged();
+                    NavigationManager.NavigateTo($"/Sesion/IniciarSesion?paramSesion={endoc}&paramClave={endocl}", true);
+                }
+            }
+            else if (!crypt.VerifyHashedPassword(l.Pass, loginModel.Password))
+            {
+
+                if (db.UsuarioPassCount.Count(p => p.IDUsuarioPass.Equals(l.IDUsuarioPass)) <= 3)
+                {
+
+                    await db.UsuarioPassCount.AddAsync(new UsuarioPassCount
+                        {
+                            IDUsuarioPassCount = Guid.NewGuid(),
+                            IDUsuarioPass = l.IDUsuarioPass,
+                            CreatedOn = DateTime.Now
+                        });
+                    await db.SaveChangesAsync();
+
+
+                    ErrorInfo = $"Contraseña incorrecta, a los 4 intentos fallidos su cuenta se bloqueara, intentos disponibles {4 - db.UsuarioPassCount.Count(p => p.IDUsuarioPass.Equals(l.IDUsuarioPass))}";
+                    IsLoadingstr = "none";
+                    StateHasChanged();
+
+                }
+                else if (db.UsuarioPassCount.Count(p => p.IDUsuarioPass.Equals(l.IDUsuarioPass)) >= 4)
+                {
+                    var bq = db.Estatus.FirstOrDefaultAsync(e => e.CodEstatus.Equals(5000)).Result.IDEstatus;
+
+
+                    var es = await db.UsuarioEstatus.FirstOrDefaultAsync(u => u.IDUsuario.Equals(l.IDUsuario) && u.IDEstatus.Equals(bq));
+
+                    if (es != null)
+                    {
+                        msn = "Usuario Bloqueado por intentos fallidos";
+                        isShow = true;
+                        loadingService.Show();
+                        StateHasChanged();
+                    }
+                    else
+                    {
+                        var ts = db.UsuarioEstatus.Where(u => u.IDUsuario.Equals(l.IDUsuario) && u.IsActive).ToList();
+
+                        foreach (var t in ts)
+                        {
+                            t.IsActive = false;
+                            t.ModifiedBy = l.IDUsuario;
+                            t.ModifiedOn = DateTime.Now;
+                        }
+
+                        db.UsuarioEstatus.UpdateRange(ts);
+
+                        await db.UsuarioEstatus.AddAsync(new UsuarioEstatus
+                            {
+                                IDUsuarioEstatus = Guid.NewGuid(),
+                                IDUsuario = l.IDUsuario,
+                                IDEstatus = bq,
+                                CreatedBy = l.IDUsuario,
+                                CreatedOn = DateTime.Now,
+                                IsActive = true
+                            });
+                        await db.SaveChangesAsync();
+
+                        msn = "Usuario Bloqueado por intentos fallidos";
+                        isShow = true;
+                        loadingService.Show();
+                        StateHasChanged();
+                    }
+
+                }
+
+            }
+        }
+
+
     }
 
 }

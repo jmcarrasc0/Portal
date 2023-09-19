@@ -12,7 +12,7 @@ public partial class Usuarios
     [Key]
     public Guid IDUsuario { get; set; }
 
-    public string Username { get; set; } = null!;
+    public string UserName { get; set; } = null!;
 
     public string Nombre { get; set; } = null!;
 

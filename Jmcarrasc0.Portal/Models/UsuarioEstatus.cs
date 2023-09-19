@@ -16,6 +16,8 @@ public partial class UsuarioEstatus
 
     public Guid IDEstatus { get; set; }
 
+    public bool IsActive { get; set; }
+
     public DateTime CreatedOn { get; set; }
 
     public Guid CreatedBy { get; set; }
