@@ -29,7 +29,7 @@ namespace Jmcarrasc0.Portal.Models.Validations
                     return !exists;
                 }).WithMessage("Correo registrado por favor recupere su contraseña");
 
-            RuleFor(u => u.Username)
+            RuleFor(u => u.UserName)
                 .NotEmpty().WithMessage("Ingrese su usuario")
                 .Length(2, 50).WithMessage("Ingrese un usuario Valido")
                 .MustAsync(async (userName, cancellation) =>
@@ -52,7 +52,7 @@ namespace Jmcarrasc0.Portal.Models.Validations
 
         private async Task<bool> UsuarioUnico(string Username)
         {
-            var dbUsuario = await db.Usuarios.AnyAsync(a => a.Username.ToLower().Equals(Username.ToLower()));
+            var dbUsuario = await db.Usuarios.AnyAsync(a => a.UserName.ToLower().Equals(Username.ToLower()));
             return dbUsuario;
         }
 

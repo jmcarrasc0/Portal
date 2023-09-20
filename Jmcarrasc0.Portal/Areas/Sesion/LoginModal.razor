@@ -5,6 +5,7 @@
 @using Microsoft.JSInterop;
 @using Jmcarrasc0.Cryptography;
 @using FluentValidation;
+@using System.Web;
 @inject IJSRuntime JS
 @inject PortalContext db
 @inject NavigationManager NavigationManager
@@ -14,6 +15,7 @@
 
 <!--Login Modal -->
 
+
 <div class="modal fade" id="loginmodal" tabindex="-1" aria-labelledby="loginModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
         <div class="modal-content">
@@ -21,43 +23,51 @@
                 <h1 class="modal-title fs-5" id="loginModalLabel">Iniciar Sesión</h1>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
-                <form>
+            <EditForm Model="loginModel" OnValidSubmit="LogIn">
+                <FluentValidationValidator @ref="fluentValidationValidator" DisableAssemblyScanning="@true" />
+                <div class="bs-danger-text-emphasis h6">
+                    <ValidationSummary />
+                </div>
+
+                <div class="modal-body">
+
                     <div class="mb-3">
-                        <label for="inputemail1" class="form-label">Correo Electronico</label>
-                        <input type="email" class="form-control" id="inputemail1" aria-describedby="emailHelp">
+                        <label for="loginModel.Usuario" class="form-label">Correo Electronico</label>
+                        <InputText @bind-Value="loginModel.Usuario" type="email" class="form-control" id="loginModel.Usuario" aria-describedby="emailHelp" />
                         <div id="emailHelp" class="form-text">Nunca compartiremos tu correo electrónico con nadie.</div>
                     </div>
                     <div class="mb-3">
-                        <label for="InputPassword1" class="form-label">Contraseña</label>
-                        <input type="password" class="form-control" id="InputPassword1">
+                        <label for="loginModel.Password" class="form-label">Contraseña</label>
+                        <InputText @bind-Value="loginModel.Password" type="password" class="form-control" id="loginModel.Password" />
                     </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" @onclick="@LogIn">Iniciar Sesión</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-            </div>
+
+
+                    @if (isShow)
+                    {
+                        <div class="toast position-fixed bottom-0 end-1 p-3 show" role="alert" aria-live="assertive" aria-atomic="true" style="z-index: var(--bs-modal-zindex);">
+                            <div class="toast-header">
+                                <i class="bi bi-exclamation-triangle" style="color:red"></i>
+                                <strong class="me-auto">Notificación</strong>
+                                <small>hace segundos</small>
+                                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                            </div>
+                            <div class="toast-body">
+                                @msn
+                            </div>
+                        </div>
+
+
+                    }
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                </div>
+            </EditForm>
         </div>
     </div>
 </div>
 
-@if (isShow)
-{
-    <div class="toast position-fixed bottom-0 end-1 p-3 show" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header">
-            <i class="bi bi-exclamation-triangle" style="color:red"></i>
-            <strong class="me-auto">Notificación</strong>
-            <small>hace segundos</small>
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-        <div class="toast-body">
-            @msn
-        </div>
-    </div>
-
-
-}
 
 
 @code {
@@ -102,54 +112,60 @@
             {
                 msn = "El Usuario no existe, intente con un correo o nombre de usuario válido";
                 isShow = true;
-                loadingService.Show();
+                loadingService.Hide();
                 StateHasChanged();
             }
             else if (crypt.VerifyHashedPassword(l.Pass, loginModel.Password))
             {
-                db.UsuarioPassCount.RemoveRange(db.UsuarioPassCount.Where(p => p.IDUsuarioPass.Equals(l.IDUsuarioPass)));
+                db.UsuarioPassCounts.RemoveRange(db.UsuarioPassCounts.Where(p => p.IDUsuarioPass.Equals(l.IDUsuarioPass)));
                 await db.SaveChangesAsync();
 
                 var t = await db.UsuarioEstatus.Include(e => e.IDEstatusNavigation).ThenInclude(e => e.UsuarioEstatus)
                     .Include(u => u.IDUsuarioNavigation)
                     .FirstOrDefaultAsync(x => x.IDUsuario.Equals(l.IDUsuario) && x.IsActive);
 
-                if (t.IDEstatusNavigation.Estatus1.Equals("Suspendido"))
+                if (t.IDEstatusNavigation.Nombre.Equals("Suspendido"))
                 {
-                    ErrorInfo = "Por Favor Contactanos";
-                    IsLoadingstr = "none";
+                    msn = "Por Favor Contactanos";
+                    isShow = true;
+                    loadingService.Hide();
                     StateHasChanged();
                 }
-                else if (t.IDEstatusNavigation.Estatus1.Equals("Sin Autenticar"))
+                else if (t.IDEstatusNavigation.Nombre.Equals("Sin Autenticar"))
                 {
-                    ErrorInfo = "Cuenta sin autenticar por favor validar";
-                    IsLoadingstr = "none";
+                    msn = "Cuenta sin autenticar por favor validar";
+                    isShow = true;
+                    loadingService.Hide();
                     StateHasChanged();
                 }
-                else if (t.IDEstatusNavigation.Estatus1.Equals("Suspendido"))
+                else if (t.IDEstatusNavigation.Nombre.Equals("Suspendido"))
                 {
-                    ErrorInfo = "Por Favor Contactanos";
-                    IsLoadingstr = "none";
+                    msn = "Por Favor Contactanos";
+                    isShow = true;
+                    loadingService.Hide();
                     StateHasChanged();
                 }
-                else if (t.IDEstatusNavigation.Estatus1.Equals("Reinicio Clave"))
+                else if (t.IDEstatusNavigation.Nombre.Equals("Reinicio Clave"))
                 {
-                    ErrorInfo = "Cuenta con proceso de reinicio de clave";
-                    IsLoadingstr = "none";
+                    msn = "Cuenta con proceso de reinicio de clave";
+                    isShow = true;
+                    loadingService.Hide();
                     StateHasChanged();
                 }
-                else if (t.IDEstatusNavigation.Estatus1.Equals("Bloqueado") || t.IDEstatusNavigation.Estatus1.Equals("Reinicio Clave Vencido"))
+                else if (t.IDEstatusNavigation.Nombre.Equals("Bloqueado") || t.IDEstatusNavigation.Nombre.Equals("Reinicio Clave Vencido"))
                 {
-                    ErrorInfo = "Por favor haga clic en ¿Has olvidado tu contraseña?";
-                    IsLoadingstr = "none";
+                    msn = "Por favor haga clic en ¿Has olvidado tu contraseña?";
+                    isShow = true;
+                    loadingService.Hide();
                     StateHasChanged();
                 }
-                else if (t.IDEstatusNavigation.Estatus1.Equals("Activo"))
+                else if (t.IDEstatusNavigation.Nombre.Equals("Activo"))
                 {
                     var endoc = HttpUtility.UrlEncode(l.IDUsuario.ToString());
                     var endocl = HttpUtility.UrlEncode(crypt.Encrypt(l.IDUsuario.ToString(), loginModel.Password));
 
-                    IsLoadingstr = "none";
+                    isShow = true;
+                    loadingService.Hide();
                     StateHasChanged();
                     NavigationManager.NavigateTo($"/Sesion/IniciarSesion?paramSesion={endoc}&paramClave={endocl}", true);
                 }
@@ -157,26 +173,27 @@
             else if (!crypt.VerifyHashedPassword(l.Pass, loginModel.Password))
             {
 
-                if (db.UsuarioPassCount.Count(p => p.IDUsuarioPass.Equals(l.IDUsuarioPass)) <= 3)
+                if (db.UsuarioPassCounts.Count(p => p.IDUsuarioPass.Equals(l.IDUsuarioPass)) <= 3)
                 {
 
-                    await db.UsuarioPassCount.AddAsync(new UsuarioPassCount
+                    await db.UsuarioPassCounts.AddAsync(new Models.UsuarioPassCounts
                         {
                             IDUsuarioPassCount = Guid.NewGuid(),
                             IDUsuarioPass = l.IDUsuarioPass,
-                            CreatedOn = DateTime.Now
+                            createdOn = DateTime.Now
                         });
                     await db.SaveChangesAsync();
 
 
-                    ErrorInfo = $"Contraseña incorrecta, a los 4 intentos fallidos su cuenta se bloqueara, intentos disponibles {4 - db.UsuarioPassCount.Count(p => p.IDUsuarioPass.Equals(l.IDUsuarioPass))}";
-                    IsLoadingstr = "none";
+                    msn = $"Contraseña incorrecta, a los 4 intentos fallidos su cuenta se bloqueara, intentos disponibles {4 - db.UsuarioPassCounts.Count(p => p.IDUsuarioPass.Equals(l.IDUsuarioPass))}";
+                    isShow = true;
+                    loadingService.Hide();
                     StateHasChanged();
 
                 }
-                else if (db.UsuarioPassCount.Count(p => p.IDUsuarioPass.Equals(l.IDUsuarioPass)) >= 4)
+                else if (db.UsuarioPassCounts.Count(p => p.IDUsuarioPass.Equals(l.IDUsuarioPass)) >= 4)
                 {
-                    var bq = db.Estatus.FirstOrDefaultAsync(e => e.CodEstatus.Equals(5000)).Result.IDEstatus;
+                    var bq = db.Estatus.FirstOrDefaultAsync(e => e.Codigo.Equals(5000)).Result.IDEstatus;
 
 
                     var es = await db.UsuarioEstatus.FirstOrDefaultAsync(u => u.IDUsuario.Equals(l.IDUsuario) && u.IDEstatus.Equals(bq));
@@ -185,7 +202,7 @@
                     {
                         msn = "Usuario Bloqueado por intentos fallidos";
                         isShow = true;
-                        loadingService.Show();
+                        loadingService.Hide();
                         StateHasChanged();
                     }
                     else
@@ -201,7 +218,7 @@
 
                         db.UsuarioEstatus.UpdateRange(ts);
 
-                        await db.UsuarioEstatus.AddAsync(new UsuarioEstatus
+                        await db.UsuarioEstatus.AddAsync(new Models.UsuarioEstatus
                             {
                                 IDUsuarioEstatus = Guid.NewGuid(),
                                 IDUsuario = l.IDUsuario,
@@ -214,7 +231,7 @@
 
                         msn = "Usuario Bloqueado por intentos fallidos";
                         isShow = true;
-                        loadingService.Show();
+                        loadingService.Hide();
                         StateHasChanged();
                     }
 
